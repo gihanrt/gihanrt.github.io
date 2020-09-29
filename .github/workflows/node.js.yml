@@ -29,7 +29,10 @@ jobs:
     - name: Update remote origin for gh-pages uploads
       env:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-      run: git remote set-url origin https://$ACCESS_TOKEN:x-oauth-basic@github.com/gihanrt/gihanrt.github.io.git
+      run: |
+        git config user.email "tharangarpg@gmail.com"
+        git config user.name "gihanrt"
+        git remote set-url origin https://$ACCESS_TOKEN:x-oauth-basic@github.com/gihanrt/gihanrt.github.io.git
     - run: npm install
     - run: npm run deploy
     
