@@ -22,6 +22,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '12.x'
-    - run: npm ci
+    - run: echo 'Before dependency installation in node js'
+    - run: ls
+    - run: npm install
     - run: npm run deploy
     
