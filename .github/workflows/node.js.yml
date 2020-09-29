@@ -26,9 +26,12 @@ jobs:
         node-version: '12.x'
 #    - run: echo 'Before dependency installation in node js'
 #    - run: ls
-    - run: |
-        git config --local user.email "tharangarpg@gmail.com"
-        git config --local user.name "gihanrt"
+    - name: Update remote origin for gh-pages uploads
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      run: |
+        git remote set-url upstream https://$ACCESS_TOKEN:x-oauth-basic@github.com/gihanrt/gihanrt.github.io.git
+        git remote set-url origin https://$ACCESS_TOKEN:x-oauth-basic@github.com/gihanrt/gihanrt.github.io.git
     - run: npm install
     - run: npm run deploy
     
