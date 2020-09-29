@@ -17,13 +17,18 @@ jobs:
       with: 
         repository: gihanrt/gihanrt.github.io
         ref: develop
+        persist-credentials: false
         token: ${{ secrets.ACCESS_TOKEN }}
+        fetch-depth: 0
     - name: Use Node.js '12.x'
       uses: actions/setup-node@v1
       with:
         node-version: '12.x'
-    - run: echo 'Before dependency installation in node js'
-    - run: ls
+#    - run: echo 'Before dependency installation in node js'
+#    - run: ls
+    - run: |
+        git config --local user.email "tharangarpg@gmail.com"
+        git config --local user.name "gihanrt"
     - run: npm install
     - run: npm run deploy
     
