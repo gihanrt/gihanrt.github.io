@@ -15,8 +15,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with: 
+        repository: gihanrt/gihanrt.github.io
         ref: develop
-        token: '7c4941383dc978eb742f8d64b97dd7db2850ed9e'
+        token: ${{ secrets.ACCESS_TOKEN }}
     - name: Use Node.js '12.x'
       uses: actions/setup-node@v1
       with:
