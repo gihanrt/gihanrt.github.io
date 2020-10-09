@@ -1,0 +1,145 @@
+---
+title: Deploy Gatsby blog in Github pages
+date: 2020-09-30
+description: Defence Against the Dark Arts (abbreviated as DADA) is a subject taught at Hogwarts School of Witchcraft and Wizardry and Ilvermorny School of Witchcraft and Wizardry. In this class, students study and learn how to defend themselves against all aspects of the Dark Arts, including dark creatures, curses, hexes and jinxes (dark charms), and duelling.
+tags:
+  - Gatsby
+  - Github Actions
+---
+
+#### Building Blog with Gatsby
+Gatsby, is react based static site generator which also includes GraphQL, Use to build websites and apps. It has good performances and scalability. This is good alternative to Jekyll sites
+but much more easier than Jekyll site generator. It is freely available, and best for writing blog sites. Many blogs usually hosted in wordpress but many better options are there. Out of 
+them Github Pages (gh-pages) is better option which is free. Therefore, portfolio and the static site can be hosted in same repository without having separate repositories for static site and portfolio. 
+
+There are plenty of blog templates available in [Gatsby Show Case](https://www.gatsbyjs.com/showcase/). There, selected templates that is easy to customized. For this blog site,
+which uses [LekoArts minimal starter blog](https://github.com/LekoArts/gatsby-starter-minimal-blog)
+
+To use gatsby development is required to install [Gatsby package](https://www.npmjs.com/package/gatsby) for npm.
+
+```
+# install gatsby 
+npm i gatsby
+
+# create a new Gatsby site using the default starter blog
+gatsby new my-blog-site https://github.com/LekoArts/gatsby-starter-minimal-blog
+
+# start development locally, it is now available at http://localhost:8000
+cd project-name
+gatsby develop
+```
+
+To start development locally run `gatsby develop`. It will started development server locally with `http://localhost:8000/`. Once it is completed start writing content in directory `/content/posts/<newDirectoryForPost>/index.mdx`
+
+
+
+#### Integrate Gatsby blog with GitHub pages
+Once the blog developed with several posts, then it can be published to gh-pages. It is important to verify site is locally running without any errors prior to deployment. Github Pages, publish 
+only static HTML files therefore, these files should be available in root directory of the repository. But, when run command `gatsby build` site build locally and moved to folder called `public`. Therefore,
+generated site cannot be published directly into gh-pages(GitHub Pages). 
+
+This site use access url as `<username>.github.io`. So, repository will be in `<username>/<username>.github.io`. Once
+repository is created in GitHub, next is to upload the contents for repo. There is npm module called `gh-pages` _which publish these content to remote repository. Since focus on keeping
+ both site and source in same repository, will use the below method_ .
+
+ ```
+ #instll gh-pages package in locally
+ npm install gh-pages --save-dev
+ ```
+
+ Initialialize git repository locally. And set the origin for publish to remote repo `(git remote set-url origin https://github.com/USERNAME/REPOSITORY.git)`.  As for below, `master` branch used for hosting static HTML files and `develop` branch used for
+ publish sources.
+
+With `gh-pages` plugin, generated site files can be uploaded. To do that, new script in package.json file should be created. Below is code snippet for that.
+```json
+{
+  "scripts": {
+    "deploy": "gatsby clean && gatsby build && gh-pages -d public -b master"
+  }
+}
+
+# If separate repository use other than <username>/<username>.github.io then following should be used.
+{
+  "scripts": {
+    "deploy": "gatsby clean && gatsby build --prefix-paths && gh-pages -d public -b master"
+  }
+}
+```
+
+And also should update in gatsby-config.js file as well.
+```js
+module.exports = {
+  pathPrefix: "/reponame",
+}
+```
+
+Run command `npm run deploy`, It will publish content to master branch of the repo. Then checkout another branch `develop` in locall repo. initialize with first commit and then push.
+with `git push -u origin develop`. If there is custom domain, It should be add to `CNAME` file to the repository. Blog site can be accessed with `https://<username>.gihub.io` or 
+ `https://<username>.gihub.io/<reponame>`
+
+
+#### Automate Blog site deployment with GitHub Actions
+
+It is straightforward to run `npm run deploy` But, every time new changes happen, this command need to run. With help of _Continuous Integration_, this
+process can be automated. __Travis__ and __GitHub Actions__ are tools can use. __GitHub Actions__ are free therefore start with it. 
+
+Before that, it is required to generated _Personal Access Token_. Under the `Profile-> Settings -> Developer Settings -> Personal Access Token`. There,
+generate a token with ticked with repo and workflow. Copy this token, then go to repo, `repo Settings -> Secrets`. Add new secret named __ACCESS_TOKEN__
+with the copied value.
+
+There many plugin available for publishing with `gh-pages` in Github Actions but following instructions will be sufficient.
+In the local repo(develop) branch, create new file under the `.github/workflows/node.js.yml`. It is the CI(Automation) configuration file. This automation happen
+when someone push to changes to develop branch.
+
+```yml
+# name of the configurations file
+name: Node.js CI
+
+# Trigger automation when new commit received to develop branch
+on:
+  push:
+    branches: develop
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+# checkout source repository of develop branch
+# secrets.ACCESS_TOKEN means personal access token created
+
+    steps:
+    - uses: actions/checkout@v2
+      with: 
+        repository: username/username.github.io
+        ref: develop
+        persist-credentials: false
+        token: ${{ secrets.ACCESS_TOKEN }}
+        fetch-depth: 0
+
+# Start with Node.js 12.x version
+
+    - name: Use Node.js '12.x'
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+#    - run: echo 'Before dependency installation in node js'
+#    - run: ls
+    - name: Update remote origin for gh-pages uploads
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      run: |
+        git config user.email "user email"
+        git config user.name user name"
+        git remote set-url origin https://$ACCESS_TOKEN:x-oauth-basic@github.com/username/username.github.io.git
+    - run: npm install
+
+# This command that was locally run.
+    - run: npm run deploy
+    
+```
+
+Once user added changes/modify to develop branch and push to remote, This automation will trigger and build, publish to master branch.
+
+
+&clubs; [How Gatsby work with GitHub Pages](https://www.gatsbyjs.com/docs/how-gatsby-works-with-github-pages/)
